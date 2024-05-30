@@ -15,25 +15,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.openurp.std.graduation.service
+package org.openurp.std.graduation.service.impl
 
-import org.beangle.cdi.bind.BindModule
-import org.openurp.std.graduation.service.impl.*
+import org.openurp.edu.grade.service.AuditPlanService
+import org.openurp.std.graduation.domain.GraduateAuditChecker
+import org.openurp.std.graduation.model.GraduateResult
 
-class DefaultModule extends BindModule {
+class GraduateAuditPlanChecker extends GraduateAuditChecker {
 
-  override protected def binding(): Unit = {
-    bind(classOf[GraduateServiceImpl])
+  var auditPlanService: AuditPlanService = _
 
-    bind(classOf[GraduateAuditServiceImpl])
-    bind(classOf[DegreeAuditServiceImpl])
-
-    bind("GraduateAuditChecker.plan", classOf[GraduateAuditPlanChecker])
-    bind("GraduateAuditChecker.debt", classOf[GraduateAuditDebtChecker])
-
-    bind("DegreeAuditChecker.plan", classOf[DegreeAuditPlanChecker])
-    bind("DegreeAuditChecker.certificate", classOf[DegreeAuditCertificateChecker])
-    bind("DegreeAuditChecker.gpa", classOf[DegreeAuditGpaChecker])
+  override def check(result: GraduateResult): (Boolean, String, String) = {
+    val rs = auditPlanService.audit(result.std, Map.empty, true)
+    if (rs.passed && rs.owedCredits <= 0) {
+      (rs.passed, "培养计划", s"${rs.requiredCredits}完成${rs.passedCredits}")
+    } else {
+      (rs.passed, "培养计划", s"缺${rs.owedCredits}")
+    }
   }
 
 }

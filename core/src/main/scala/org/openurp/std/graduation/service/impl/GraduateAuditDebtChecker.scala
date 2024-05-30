@@ -15,25 +15,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.openurp.std.graduation.service
+package org.openurp.std.graduation.service.impl
 
-import org.beangle.cdi.bind.BindModule
-import org.openurp.std.graduation.service.impl.*
+import org.beangle.data.dao.{EntityDao, OqlBuilder}
+import org.openurp.std.fee.model.Debt
+import org.openurp.std.graduation.domain.GraduateAuditChecker
+import org.openurp.std.graduation.model.GraduateResult
 
-class DefaultModule extends BindModule {
+class GraduateAuditDebtChecker extends GraduateAuditChecker {
 
-  override protected def binding(): Unit = {
-    bind(classOf[GraduateServiceImpl])
+  var entityDao: EntityDao = _
 
-    bind(classOf[GraduateAuditServiceImpl])
-    bind(classOf[DegreeAuditServiceImpl])
-
-    bind("GraduateAuditChecker.plan", classOf[GraduateAuditPlanChecker])
-    bind("GraduateAuditChecker.debt", classOf[GraduateAuditDebtChecker])
-
-    bind("DegreeAuditChecker.plan", classOf[DegreeAuditPlanChecker])
-    bind("DegreeAuditChecker.certificate", classOf[DegreeAuditCertificateChecker])
-    bind("DegreeAuditChecker.gpa", classOf[DegreeAuditGpaChecker])
+  def check(result: GraduateResult): (Boolean, String, String) = {
+    val debts = entityDao.findBy(classOf[Debt], "std", result.std)
+    val sum = debts.map(_.amount).sum
+    if (sum > 0) {
+      (false, "费用", s"欠费${sum / 100f}")
+    } else {
+      (true, "费用", "查无欠费")
+    }
   }
-
 }

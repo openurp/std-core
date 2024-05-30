@@ -26,10 +26,4 @@ trait GraduateService {
   def getBatches(project: Project): Seq[GraduateBatch]
 
   def getResult(std: Student, batch: GraduateBatch): Option[GraduateResult]
-
-  def initResult(std: Student, batch: GraduateBatch): GraduateResult
-
-  def initResults(codes: collection.Seq[String], batch: GraduateBatch): Int
-
-  def initResults(batch: GraduateBatch): Int
 }

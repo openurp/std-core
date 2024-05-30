@@ -17,23 +17,17 @@
 
 package org.openurp.std.graduation.service
 
-import org.beangle.cdi.bind.BindModule
-import org.openurp.std.graduation.service.impl.*
+import org.openurp.base.std.model.Student
+import org.openurp.std.graduation.model.{DegreeResult, GraduateBatch}
 
-class DefaultModule extends BindModule {
+trait DegreeAuditService {
+  def audit(result: DegreeResult): Unit
 
-  override protected def binding(): Unit = {
-    bind(classOf[GraduateServiceImpl])
+  def getResult(std: Student, batch: GraduateBatch): Option[DegreeResult]
 
-    bind(classOf[GraduateAuditServiceImpl])
-    bind(classOf[DegreeAuditServiceImpl])
+  def initResult(std: Student, batch: GraduateBatch): DegreeResult
 
-    bind("GraduateAuditChecker.plan", classOf[GraduateAuditPlanChecker])
-    bind("GraduateAuditChecker.debt", classOf[GraduateAuditDebtChecker])
+  def initResults(codes: collection.Seq[String], batch: GraduateBatch): Int
 
-    bind("DegreeAuditChecker.plan", classOf[DegreeAuditPlanChecker])
-    bind("DegreeAuditChecker.certificate", classOf[DegreeAuditCertificateChecker])
-    bind("DegreeAuditChecker.gpa", classOf[DegreeAuditGpaChecker])
-  }
-
+  def initResults(batch: GraduateBatch): Int
 }
