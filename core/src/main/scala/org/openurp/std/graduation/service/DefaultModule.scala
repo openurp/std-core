@@ -17,7 +17,7 @@
 
 package org.openurp.std.graduation.service
 
-import org.beangle.cdi.bind.BindModule
+import org.beangle.commons.cdi.BindModule
 import org.openurp.std.graduation.service.impl.*
 
 class DefaultModule extends BindModule {

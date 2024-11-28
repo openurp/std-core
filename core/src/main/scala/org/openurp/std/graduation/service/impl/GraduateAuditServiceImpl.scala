@@ -17,7 +17,7 @@
 
 package org.openurp.std.graduation.service.impl
 
-import org.beangle.cdi.{Container, ContainerAware}
+import org.beangle.commons.cdi.{Container, ContainerAware}
 import org.beangle.commons.collection.Collections
 import org.beangle.commons.lang.Strings
 import org.beangle.data.dao.{EntityDao, OqlBuilder}
