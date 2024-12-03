@@ -19,10 +19,10 @@ package org.openurp.std.graduation.service.impl
 
 import org.beangle.commons.cdi.{Container, ContainerAware}
 import org.beangle.commons.collection.Collections
-import org.beangle.commons.lang.Strings
 import org.beangle.data.dao.{EntityDao, OqlBuilder}
+import org.beangle.ems.app.rule.RuleEngine
 import org.openurp.base.std.model.{Graduate, Student}
-import org.openurp.std.graduation.domain.GraduateAuditChecker
+import org.openurp.std.graduation.config.AuditSetting
 import org.openurp.std.graduation.model.{GraduateBatch, GraduateResult}
 import org.openurp.std.graduation.service.GraduateAuditService
 
@@ -34,20 +34,31 @@ class GraduateAuditServiceImpl extends GraduateAuditService, ContainerAware {
   var checkNames: String = "plan"
   var container: Container = _
 
+  private def getSetting(std: Student): Option[AuditSetting] = {
+    val project = std.project
+    val q = OqlBuilder.from(classOf[AuditSetting], "setting")
+    q.where("setting.project=:project", project)
+    q.cacheable(true)
+    val settings = entityDao.search(q)
+    settings.find(x => x.levels.contains(std.level) && x.within(std.studyOn))
+  }
+
   override def audit(result: GraduateResult): Unit = {
     result.passedItems = None
     result.failedItems = None
-    val checkers = Strings.split(checkNames, ",").flatMap(n => container.getBean[GraduateAuditChecker]("GraduateAuditChecker." + n)).toSeq
-    checkers foreach { checker =>
-      val rs = checker.check(result)
-      if (rs._1) {
-        result.addPassed(rs._2, rs._3)
+
+    val setting = getSetting(result.std).getOrElse(new AuditSetting)
+    val engine = RuleEngine.get(setting.gruleIds)
+    val results = engine.execute(result)
+    results foreach { rs =>
+      if (rs._2) {
+        result.addPassed(rs._1.title, rs._3)
       } else {
-        result.addFailed(rs._2, rs._3)
+        result.addFailed(rs._1.title, rs._3)
       }
     }
     result.updatedAt = Instant.now
-    result.passed = Some(result.failedItems.isEmpty)
+    result.passed = Some(result.passedItems.nonEmpty & result.failedItems.isEmpty)
     //    result.passed foreach{passed=>
     //      if(passed){
     //        result.educationResult = Some(new EducationResult())
@@ -55,9 +66,6 @@ class GraduateAuditServiceImpl extends GraduateAuditService, ContainerAware {
     //
     //      }
     //    }
-    if (result.passed.getOrElse(false)) {
-
-    }
     entityDao.saveOrUpdate(result)
   }
 

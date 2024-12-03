@@ -18,6 +18,7 @@
 package org.openurp.std.graduation.service
 
 import org.beangle.commons.cdi.BindModule
+import org.beangle.commons.cdi.Scope.Prototype
 import org.openurp.std.graduation.service.impl.*
 
 class DefaultModule extends BindModule {
@@ -32,8 +33,9 @@ class DefaultModule extends BindModule {
     bind("GraduateAuditChecker.debt", classOf[GraduateAuditDebtChecker])
 
     bind("DegreeAuditChecker.plan", classOf[DegreeAuditPlanChecker])
-    bind("DegreeAuditChecker.certificate", classOf[DegreeAuditCertificateChecker])
-    bind("DegreeAuditChecker.gpa", classOf[DegreeAuditGpaChecker])
+    bind("DegreeAuditChecker.certificate", classOf[DegreeAuditCertificateChecker]).in(Prototype)
+    bind("DegreeAuditChecker.gpa", classOf[DegreeAuditGpaChecker]).in(Prototype)
+    bind("DegreeAuditChecker.thesis", classOf[DegreeAuditThesisChecker]).in(Prototype)
   }
 
 }

@@ -25,12 +25,12 @@ class GraduateAuditPlanChecker extends GraduateAuditChecker {
 
   var auditPlanService: AuditPlanService = _
 
-  override def check(result: GraduateResult): (Boolean, String, String) = {
+  override def check(result: GraduateResult): (Boolean, String) = {
     val rs = auditPlanService.audit(result.std, Map.empty, true)
     if (rs.passed && rs.owedCredits <= 0) {
-      (rs.passed, "培养计划", s"${rs.requiredCredits}完成${rs.passedCredits}")
+      (rs.passed, s"${rs.requiredCredits}完成${rs.passedCredits}")
     } else {
-      (rs.passed, "培养计划", s"缺${rs.owedCredits}")
+      (rs.passed, s"缺${rs.owedCredits}")
     }
   }
 

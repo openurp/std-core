@@ -19,11 +19,11 @@ package org.openurp.std.graduation.service.impl
 
 import org.beangle.commons.cdi.{Container, ContainerAware}
 import org.beangle.commons.collection.Collections
-import org.beangle.commons.lang.Strings
 import org.beangle.data.dao.{EntityDao, OqlBuilder}
+import org.beangle.ems.app.rule.RuleEngine
 import org.openurp.base.std.model.Student
 import org.openurp.edu.program.domain.ProgramProvider
-import org.openurp.std.graduation.domain.DegreeAuditChecker
+import org.openurp.std.graduation.config.AuditSetting
 import org.openurp.std.graduation.model.{DegreeResult, GraduateBatch}
 import org.openurp.std.graduation.service.DegreeAuditService
 
@@ -37,10 +37,21 @@ class DegreeAuditServiceImpl extends DegreeAuditService, ContainerAware {
 
   var programProvider: ProgramProvider = _
 
+  private def getSetting(std: Student): Option[AuditSetting] = {
+    val project = std.project
+    val q = OqlBuilder.from(classOf[AuditSetting], "setting")
+    q.where("setting.project=:project", project)
+    q.cacheable(true)
+    val settings = entityDao.search(q)
+    settings.find(x => x.levels.contains(std.level) && x.within(std.studyOn))
+  }
+
   override def audit(result: DegreeResult): Unit = {
     result.passedItems = None
     result.failedItems = None
     val std = result.std
+    val setting = getSetting(result.std).getOrElse(new AuditSetting)
+
     programProvider.getProgram(std) match
       case None =>
         result.passed = Some(false)
@@ -48,17 +59,19 @@ class DegreeAuditServiceImpl extends DegreeAuditService, ContainerAware {
         result.updatedAt = Instant.now
         entityDao.saveOrUpdate(result)
       case Some(program) =>
-        val checkers = Strings.split(checkNames, ",").flatMap(n => container.getBean[DegreeAuditChecker]("DegreeAuditChecker." + n)).toSeq
-        checkers foreach { checker =>
-          val rs = checker.check(result, program)
-          if (rs._1) {
-            result.addPassed(rs._2, rs._3)
+        val setting = getSetting(result.std).getOrElse(new AuditSetting)
+        val engine = RuleEngine.get(setting.druleIds.orNull)
+        val results = engine.execute(null)
+        results foreach { rs =>
+          if (rs._2) {
+            result.addPassed(rs._1.title, rs._3)
           } else {
-            result.addFailed(rs._2, rs._3)
+            result.addFailed(rs._1.title, rs._3)
           }
         }
+
         result.updatedAt = Instant.now
-        result.passed = Some(result.failedItems.isEmpty)
+        result.passed = Some(result.passedItems.nonEmpty && result.failedItems.isEmpty)
         result.passed foreach { p =>
           if (p) result.degree = program.degree else result.degree = None
         }

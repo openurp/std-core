@@ -17,25 +17,35 @@
 
 package org.openurp.std.graduation.service.impl
 
-import org.beangle.data.dao.EntityDao
-import org.openurp.edu.grade.model.AuditPlanResult
+import org.beangle.commons.lang.Strings
+import org.beangle.data.dao.{EntityDao, OqlBuilder}
+import org.openurp.edu.grade.model.{CourseGrade, Grade}
 import org.openurp.edu.program.model.Program
 import org.openurp.std.graduation.domain.DegreeAuditChecker
 import org.openurp.std.graduation.model.DegreeResult
 
-class DegreeAuditPlanChecker extends DegreeAuditChecker {
-  var entityDao: EntityDao = _
+class DegreeAuditThesisChecker extends DegreeAuditChecker {
+  var entityDao: EntityDao = null
+
+  var thesisCourseNames = "毕业论文"
+  var minScore = 70f
 
   override def check(result: DegreeResult, program: Program): (Boolean, String) = {
     val std = result.std
-    entityDao.findBy(classOf[AuditPlanResult], "std", std).headOption match
-      case None => (false, "找不到计划完成情况")
-      case Some(rs) =>
-        if (rs.passed && rs.owedCredits <= 0) {
-          (rs.passed, s"要求${rs.requiredCredits}完成${rs.passedCredits}")
-        } else {
-          (rs.passed, s"缺${rs.owedCredits}")
-        }
+    val query = OqlBuilder.from(classOf[CourseGrade], "grade")
+    query.where("grade.std = :std", std)
+    query.where("grade.status =:status", Grade.Status.Published)
+    query.where("grade.course.name in(:courseNames)", Strings.split(thesisCourseNames))
+    val grades = entityDao.search(query)
+    var best: Option[Float] = None
+    for (g <- grades) {
+      g.score foreach { score =>
+        if (best.isEmpty || score > best.get) best = Some(score)
+      }
+    }
+    var passed = false
+    if (best.nonEmpty && java.lang.Float.compare(minScore, best.get) <= 0) passed = true
+    (passed, "论文成绩" + String.valueOf(best))
   }
 
 }

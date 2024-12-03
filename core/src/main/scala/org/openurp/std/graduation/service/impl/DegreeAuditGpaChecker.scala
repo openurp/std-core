@@ -27,19 +27,19 @@ class DegreeAuditGpaChecker extends DegreeAuditChecker {
   var entityDao: EntityDao = _
   var defaultGpa: Float = 2.0f
 
-  override def check(result: DegreeResult, program: Program): (Boolean, String, String) = {
+  override def check(result: DegreeResult, program: Program): (Boolean, String) = {
     val std = result.std
     entityDao.findBy(classOf[StdGpa], "std", std).headOption match
-      case None => (false, "绩点", "查不到平均绩点")
+      case None => (false, "查不到平均绩点")
       case Some(stat) =>
         val gpa = stat.gpa.floatValue
         result.gpa = Some(stat.gpa.floatValue)
         result.ga = Some(stat.ga.floatValue)
         val standard = program.degreeGpa.getOrElse(defaultGpa)
         if (java.lang.Float.compare(standard, gpa) <= 0) {
-          (true, "绩点", s"${gpa}")
+          (true, s"${gpa}")
         } else {
-          (false, "绩点", s"${gpa}")
+          (false, s"${gpa}")
         }
   }
 

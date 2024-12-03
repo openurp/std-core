@@ -17,7 +17,7 @@
 
 package org.openurp.std.graduation.service.impl
 
-import org.beangle.data.dao.{EntityDao, OqlBuilder}
+import org.beangle.data.dao.EntityDao
 import org.openurp.std.fee.model.Debt
 import org.openurp.std.graduation.domain.GraduateAuditChecker
 import org.openurp.std.graduation.model.GraduateResult
@@ -26,13 +26,13 @@ class GraduateAuditDebtChecker extends GraduateAuditChecker {
 
   var entityDao: EntityDao = _
 
-  def check(result: GraduateResult): (Boolean, String, String) = {
+  def check(result: GraduateResult): (Boolean, String) = {
     val debts = entityDao.findBy(classOf[Debt], "std", result.std)
     val sum = debts.map(_.amount).sum
     if (sum > 0) {
-      (false, "费用", s"欠费${sum / 100f}")
+      (false, s"欠费${sum / 100f}")
     } else {
-      (true, "费用", "查无欠费")
+      (true, "查无欠费")
     }
   }
 }
