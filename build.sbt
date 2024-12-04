@@ -32,7 +32,10 @@ val openurp_edu_core = "org.openurp.edu" % "openurp-edu-core" % eduCoreVer
 val openurp_stater_ws = "org.openurp.starter" % "openurp-starter-ws" % starterVer
 
 lazy val root = (project in file("."))
-  .settings(common)
+  .settings(
+    common,
+    name := "openurp-edu-core-root",
+    organization := "org.openurp.edu")
   .aggregate(core)
 
 lazy val core = (project in file("core"))
@@ -41,7 +44,7 @@ lazy val core = (project in file("core"))
     organization := "org.openurp.std",
     common,
     libraryDependencies ++= Seq(openurp_std_api, openurp_edu_api),
-    libraryDependencies ++= Seq(beangle_ems_app,openurp_edu_core)
+    libraryDependencies ++= Seq(beangle_ems_app, openurp_edu_core)
   )
 
 publish / skip := true
