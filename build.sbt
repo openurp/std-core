@@ -1,7 +1,7 @@
 import org.openurp.parent.Dependencies.*
 import org.openurp.parent.Settings.*
 
-ThisBuild / version := "0.0.15-SNAPSHOT"
+ThisBuild / version := "0.0.15"
 
 ThisBuild / scmInfo := Some(
   ScmInfo(
@@ -22,9 +22,9 @@ ThisBuild / developers := List(
 ThisBuild / description := "OpenURP Std Core Library"
 ThisBuild / homepage := Some(url("http://openurp.github.io/std-core/index.html"))
 
-val apiVer = "0.41.13"
-val starterVer = "0.3.47"
-val eduCoreVer = "0.3.6"
+val apiVer = "0.41.14"
+val starterVer = "0.3.48"
+val eduCoreVer = "0.3.7"
 
 val openurp_edu_api = "org.openurp.edu" % "openurp-edu-api" % apiVer
 val openurp_std_api = "org.openurp.std" % "openurp-std-api" % apiVer
@@ -34,8 +34,8 @@ val openurp_stater_ws = "org.openurp.starter" % "openurp-starter-ws" % starterVe
 lazy val root = (project in file("."))
   .settings(
     common,
-    name := "openurp-edu-core-root",
-    organization := "org.openurp.edu")
+    name := "openurp-std-core-root",
+    organization := "org.openurp.std")
   .aggregate(core)
 
 lazy val core = (project in file("core"))

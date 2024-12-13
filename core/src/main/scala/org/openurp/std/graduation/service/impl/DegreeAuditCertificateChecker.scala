@@ -28,7 +28,6 @@ import org.openurp.std.graduation.model.DegreeResult
 class DegreeAuditCertificateChecker extends DegreeAuditChecker {
   var entityDao: EntityDao = _
   var certificateIds: String = null
-
   var validityYear = 5
 
   override def check(result: DegreeResult, program: Program): (Boolean, String) = {
@@ -56,6 +55,7 @@ class DegreeAuditCertificateChecker extends DegreeAuditChecker {
       if (grades.isEmpty) {
         (false, "缺少证书")
       } else {
+        if (null == grade && grades.nonEmpty) grade = grades.head
         if (passed) {
           (true, s"${grade.certificate.name}${grade.scoreText}")
         } else {

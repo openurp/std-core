@@ -45,7 +45,7 @@ class DegreeAuditThesisChecker extends DegreeAuditChecker {
     }
     var passed = false
     if (best.nonEmpty && java.lang.Float.compare(minScore, best.get) <= 0) passed = true
-    (passed, "论文成绩" + String.valueOf(best))
+    (passed, "论文成绩" + String.valueOf(best.map(_.toString).getOrElse("")))
   }
 
 }

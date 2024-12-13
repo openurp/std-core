@@ -24,7 +24,7 @@ import org.beangle.ems.app.rule.RuleEngine
 import org.openurp.base.std.model.Student
 import org.openurp.edu.program.domain.ProgramProvider
 import org.openurp.std.graduation.config.AuditSetting
-import org.openurp.std.graduation.model.{DegreeResult, GraduateBatch}
+import org.openurp.std.graduation.model.{DegreeResult, GraduateBatch, GraduateResult}
 import org.openurp.std.graduation.service.DegreeAuditService
 
 import java.time.Instant
@@ -61,7 +61,7 @@ class DegreeAuditServiceImpl extends DegreeAuditService, ContainerAware {
       case Some(program) =>
         val setting = getSetting(result.std).getOrElse(new AuditSetting)
         val engine = RuleEngine.get(setting.druleIds.orNull)
-        val results = engine.execute(null)
+        val results = engine.execute(result, program)
         results foreach { rs =>
           if (rs._2) {
             result.addPassed(rs._1.title, rs._3)
@@ -108,8 +108,11 @@ class DegreeAuditServiceImpl extends DegreeAuditService, ContainerAware {
   override def initResults(batch: GraduateBatch): Int = {
     val stdQuery = OqlBuilder.from(classOf[Student], "std")
     stdQuery.where("std.project = :project", batch.project)
+      //本毕业季没有数据
       .where("not exists(from  " + classOf[DegreeResult].getName + " ga where ga.std=std and ga.batch = :batch)", batch)
-      .where("exists(from  " + classOf[DegreeResult].getName + " ga where ga.std=std and ga.batch = :batch and ga.passed=true)", batch)
+      //存在当期毕业数据
+      .where("exists(from  " + classOf[GraduateResult].getName + " ga where ga.std=std and ga.batch = :batch and ga.passed=true)", batch)
+      // 其他毕业批次也没有通过的记录
       .where("not exists(from  " + classOf[DegreeResult].getName + " ar where ar.std=std and ar.passed=true and ar.batch<>:batch)", batch)
 
     val results = entityDao.search(stdQuery).map(new DegreeResult(_, batch))
