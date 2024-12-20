@@ -18,7 +18,7 @@
 package org.openurp.std.graduation.service
 
 import org.openurp.base.std.model.Student
-import org.openurp.std.graduation.model.{DegreeResult, GraduateBatch}
+import org.openurp.std.graduation.model.{DegreeResult, GraduateBatch, GraduateResult}
 
 trait DegreeAuditService {
   def audit(result: DegreeResult): Unit
@@ -30,4 +30,6 @@ trait DegreeAuditService {
   def initResults(codes: collection.Seq[String], batch: GraduateBatch): Int
 
   def initResults(batch: GraduateBatch): Int
+
+  def publish(results: Iterable[DegreeResult], published: Boolean): Unit
 }

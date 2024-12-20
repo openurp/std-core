@@ -31,4 +31,6 @@ trait GraduateAuditService {
   def initResults(codes: collection.Seq[String], batch: GraduateBatch): Int
 
   def initResults(batch: GraduateBatch): Int
+
+  def publish(results: Iterable[GraduateResult], published: Boolean): Unit
 }

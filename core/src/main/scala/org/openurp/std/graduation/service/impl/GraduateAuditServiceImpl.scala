@@ -21,6 +21,7 @@ import org.beangle.commons.cdi.{Container, ContainerAware}
 import org.beangle.commons.collection.Collections
 import org.beangle.data.dao.{EntityDao, OqlBuilder}
 import org.beangle.ems.app.rule.RuleEngine
+import org.checkerframework.checker.units.qual.g
 import org.openurp.base.std.model.{Graduate, Student}
 import org.openurp.std.graduation.config.AuditSetting
 import org.openurp.std.graduation.model.{GraduateBatch, GraduateResult}
@@ -94,6 +95,38 @@ class GraduateAuditServiceImpl extends GraduateAuditService, ContainerAware {
       total += results.size
     }
     total
+  }
+
+  override def publish(results: Iterable[GraduateResult], published: Boolean): Unit = {
+    for (result <- results if result.passed.contains(true)) {
+      result.published = published
+      val gquery = OqlBuilder.from(classOf[Graduate], "g")
+      gquery.where("g.std=:std", result.std)
+      gquery.where("g.season=:season", result.batch.season)
+      gquery.param("std", result.std)
+      var g: Graduate = null
+      entityDao.search(gquery).headOption match
+        case None =>
+          g = new Graduate
+          g.season = result.batch.season
+          g.graduateOn = Some(result.batch.graduateOn)
+          g.certificateNo = None
+          g.std = result.std
+        case Some(gs) =>
+          g = gs
+
+      if (published) {
+        g.graduateOn = Some(result.batch.graduateOn)
+        g.result = result.educationResult.get
+      } else {
+        g.graduateOn = None
+      }
+      g.updatedAt = Instant.now
+      result.locked = published
+      result.published = published
+      entityDao.saveOrUpdate(g)
+      entityDao.saveOrUpdate(result)
+    }
   }
 
   override def initResults(batch: GraduateBatch): Int = {
