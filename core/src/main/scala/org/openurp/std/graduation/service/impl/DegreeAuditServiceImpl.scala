@@ -43,7 +43,7 @@ class DegreeAuditServiceImpl extends DegreeAuditService, ContainerAware {
     q.where("setting.project=:project", project)
     q.cacheable(true)
     val settings = entityDao.search(q)
-    settings.find(x => x.levels.contains(std.level) && x.within(std.studyOn))
+    settings.find(x => x.levels.contains(std.level) && x.within(std.beginOn))
   }
 
   override def audit(result: DegreeResult): Unit = {
