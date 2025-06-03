@@ -1,7 +1,7 @@
 import org.openurp.parent.Dependencies.*
 import org.openurp.parent.Settings.*
 
-ThisBuild / version := "0.0.19-SNAPSHOT"
+ThisBuild / version := "0.0.19"
 
 ThisBuild / scmInfo := Some(
   ScmInfo(
@@ -22,9 +22,9 @@ ThisBuild / developers := List(
 ThisBuild / description := "OpenURP Std Core Library"
 ThisBuild / homepage := Some(url("http://openurp.github.io/std-core/index.html"))
 
-val apiVer = "0.42.1"
-val starterVer = "0.3.56"
-val eduCoreVer = "0.3.9"
+val apiVer = "0.43.0"
+val starterVer = "0.3.57"
+val eduCoreVer = "0.3.10"
 
 val openurp_edu_api = "org.openurp.edu" % "openurp-edu-api" % apiVer
 val openurp_std_api = "org.openurp.std" % "openurp-std-api" % apiVer
