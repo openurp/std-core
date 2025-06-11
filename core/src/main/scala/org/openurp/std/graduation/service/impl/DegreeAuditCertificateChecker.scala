@@ -47,7 +47,7 @@ class DegreeAuditCertificateChecker extends DegreeAuditChecker {
       var grade: CertificateGrade = null
       var passed = false
       for (g <- grades; if !passed) {
-        if (g.passed && g.acquiredOn.atEndOfMonth().isAfter(lastDate)) {
+        if (g.passed && g.acquiredIn.atEndOfMonth().isAfter(lastDate)) {
           grade = g
           passed = true
         }
