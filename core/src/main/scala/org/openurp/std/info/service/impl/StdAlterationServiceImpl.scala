@@ -23,7 +23,7 @@ import org.openurp.base.edu.model.{Direction, Major}
 import org.openurp.base.hr.model.Teacher
 import org.openurp.base.model.{Campus, Department}
 import org.openurp.base.service.SemesterService
-import org.openurp.base.std.model.{Grade, Squad, Student, StudentState}
+import org.openurp.base.std.model.*
 import org.openurp.code.std.model.StudentStatus
 import org.openurp.std.alter.config.AlterConfig
 import org.openurp.std.alter.model.{AlterMeta, StdAlterApply, StdAlteration, StdAlterationItem}
@@ -89,8 +89,8 @@ class StdAlterationServiceImpl extends StdAlterationService {
             case AlterMeta.Status => state.status = entityDao.get(classOf[StudentStatus], item.newvalue.get.toInt)
             case AlterMeta.Campus => state.campus = entityDao.get(classOf[Campus], item.newvalue.get.toInt)
             case AlterMeta.EndOn => state.std.endOn = LocalDate.parse(item.newvalue.get)
-            case AlterMeta.Tutor => std.tutor = Some(entityDao.get(classOf[Teacher], item.newvalue.get.toLong))
-            case AlterMeta.Advisor => std.advisor = Some(entityDao.get(classOf[Teacher], item.newvalue.get.toLong))
+            case AlterMeta.Tutor => std.updateTutors(List(entityDao.get(classOf[Teacher], item.newvalue.get.toLong)), Tutorship.Major)
+            case AlterMeta.Advisor => std.updateTutors(List(entityDao.get(classOf[Teacher], item.newvalue.get.toLong)), Tutorship.Thesis)
             case AlterMeta.GraduateOn => std.graduateOn = LocalDate.parse(item.newvalue.get)
             case _ => throw new RuntimeException(s"cannot support ${item.meta}")
           }
