@@ -34,7 +34,7 @@ class DegreeAuditGpaChecker extends DegreeAuditChecker {
       case Some(stat) =>
         val gpa = stat.gpa.floatValue
         result.gpa = Some(stat.gpa.floatValue)
-        result.ga = Some(stat.ga.floatValue)
+        result.ga = Some(stat.wms.floatValue)
         val standard = program.degreeGpa.getOrElse(defaultGpa)
         if (java.lang.Float.compare(standard, gpa) <= 0) {
           (true, s"${gpa}")

@@ -19,7 +19,7 @@ package org.openurp.std.info.service.impl
 
 import org.beangle.commons.json.{Json, JsonObject}
 import org.beangle.data.dao.EntityDao
-import org.openurp.base.edu.model.{Direction, Major}
+import org.openurp.base.edu.model.{Major, MajorDirection}
 import org.openurp.base.hr.model.Teacher
 import org.openurp.base.model.{Campus, Department}
 import org.openurp.base.service.SemesterService
@@ -80,7 +80,7 @@ class StdAlterationServiceImpl extends StdAlterationService {
             case AlterMeta.Direction =>
               item.newvalue match
                 case None => state.direction = None
-                case Some(id) => state.direction = Some(entityDao.get(classOf[Direction], id.toLong))
+                case Some(id) => state.direction = Some(entityDao.get(classOf[MajorDirection], id.toLong))
             case AlterMeta.Squad =>
               item.newvalue match
                 case None => state.squad = None
