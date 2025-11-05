@@ -17,45 +17,40 @@
 
 package org.openurp.std.graduation.service.impl
 
-import org.beangle.commons.collection.Collections
 import org.beangle.data.dao.EntityDao
-import org.openurp.base.std.model.Student
-import org.openurp.code.edu.model.CourseTakeType
+import org.openurp.code.edu.model.GradeType
 import org.openurp.edu.grade.domain.CourseGradeProvider
-import org.openurp.edu.grade.model.CourseGrade
 import org.openurp.edu.program.model.Program
 import org.openurp.std.graduation.domain.DegreeAuditChecker
 import org.openurp.std.graduation.model.DegreeResult
 
-/** 学位审核--算术平均分
+/** 学位审核--补考次数检查
  */
-class DegreeAuditScoreChecker extends DegreeAuditChecker {
+class DegreeAuditMakupCountChecker extends DegreeAuditChecker {
+  var maxCount: Int = 5
   var entityDao: EntityDao = _
-  var minScore = 70
   var courseGradeProvider: CourseGradeProvider = _
 
   override def check(result: DegreeResult, program: Program): (Boolean, String) = {
-    val std: Student = result.std
-    val grades = courseGradeProvider.get(std).toBuffer
-    val removes = Collections.newBuffer[CourseGrade]
-    for (g <- grades) {
-      if !g.course.calgp then removes.addOne(g) //不计算绩点的
-      if (g.courseTakeType.id == (CourseTakeType.Exemption) && g.score.isEmpty) { //免修没有分数的
-        removes.addOne(g)
+    val std = result.std
+    val grades = courseGradeProvider.get(std)
+    var makeupCount: Int = 0
+    val gradeType = new GradeType(GradeType.Makeup)
+    for (grade <- grades) {
+      val eg = grade.getExamGrade(gradeType)
+      if (eg.nonEmpty) {
+        makeupCount += 1
       }
     }
-    grades.subtractAll(removes)
-    var sum: Double = 0
-    for (g <- grades) {
-      if (g.score.nonEmpty) {
-        sum += g.score.get
-      }
+    val passed: Boolean = makeupCount <= maxCount
+    var comment: String = ""
+    if (passed) {
+      comment = "补考次数" + makeupCount + " 不超过 " + maxCount
     }
-    var ga: Double = 0
-    if (grades.nonEmpty) {
-      ga = (sum / grades.size).round
+    else {
+      comment = "补考次数" + makeupCount + "超过" + maxCount
     }
-    val passed = java.lang.Double.compare(minScore.doubleValue, ga) < 1.0
-    (passed, s"最低${minScore},平均分${ga}")
+    (passed, comment)
   }
+
 }

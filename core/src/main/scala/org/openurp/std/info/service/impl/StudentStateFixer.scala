@@ -18,14 +18,14 @@
 package org.openurp.std.info.service.impl
 
 import org.beangle.commons.logging.Logging
-import org.beangle.data.orm.hibernate.DaoJob
+import org.beangle.data.orm.hibernate.AbstractDaoTask
 import org.openurp.base.std.model.Student
 
 import java.time.LocalDate
 
 /** 自动修正学生的学籍状态
  */
-class StudentStateFixer extends DaoJob, Logging {
+class StudentStateFixer extends AbstractDaoTask, Logging {
 
   override def execute(): Unit = {
     val updateQl = s"update ${classOf[Student].getName} s set state=(select min(ss.id) from s.states ss where " +

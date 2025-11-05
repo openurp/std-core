@@ -37,6 +37,8 @@ class DefaultModule extends BindModule {
     bind("DegreeAuditChecker.gpa", classOf[DegreeAuditGpaChecker]).in(Prototype)
     bind("DegreeAuditChecker.thesis", classOf[DegreeAuditThesisChecker]).in(Prototype)
     bind("DegreeAuditChecker.score", classOf[DegreeAuditScoreChecker]).in(Prototype)
+    bind("DegreeAuditChecker.makeupCount",classOf[DegreeAuditMakupCountChecker]).in(Prototype)
+    bind("DegreeAuditChecker.degreeCourse",classOf[DegreeAuditDegreeCourseChecker]).in(Prototype)
   }
 
 }

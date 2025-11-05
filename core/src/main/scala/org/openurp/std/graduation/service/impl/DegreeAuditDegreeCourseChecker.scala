@@ -19,43 +19,55 @@ package org.openurp.std.graduation.service.impl
 
 import org.beangle.commons.collection.Collections
 import org.beangle.data.dao.EntityDao
-import org.openurp.base.std.model.Student
-import org.openurp.code.edu.model.CourseTakeType
+import org.openurp.base.edu.model.Course
 import org.openurp.edu.grade.domain.CourseGradeProvider
 import org.openurp.edu.grade.model.CourseGrade
 import org.openurp.edu.program.model.Program
 import org.openurp.std.graduation.domain.DegreeAuditChecker
 import org.openurp.std.graduation.model.DegreeResult
 
-/** 学位审核--算术平均分
+/** 学位审核--学位课程
+ *
  */
-class DegreeAuditScoreChecker extends DegreeAuditChecker {
+class DegreeAuditDegreeCourseChecker extends DegreeAuditChecker {
+  var minScore: Float = 70
   var entityDao: EntityDao = _
-  var minScore = 70
   var courseGradeProvider: CourseGradeProvider = _
 
   override def check(result: DegreeResult, program: Program): (Boolean, String) = {
-    val std: Student = result.std
-    val grades = courseGradeProvider.get(std).toBuffer
-    val removes = Collections.newBuffer[CourseGrade]
-    for (g <- grades) {
-      if !g.course.calgp then removes.addOne(g) //不计算绩点的
-      if (g.courseTakeType.id == (CourseTakeType.Exemption) && g.score.isEmpty) { //免修没有分数的
-        removes.addOne(g)
+    val std = result.std
+    val courses = program.degreeCourses
+    if (courses.isEmpty) {
+      (true, "计划内没有列出学位课")
+    } else {
+      val grades = courseGradeProvider.get(std)
+      val gradeMap = Collections.newMap[Course, CourseGrade]
+      for (grade <- grades) {
+        if (grade.score.nonEmpty) {
+          gradeMap.get(grade.course) match {
+            case None => gradeMap.put(grade.course, grade)
+            case Some(g) => if (grade.score.get > g.score.get) gradeMap.put(g.course, grade)
+          }
+        }
       }
-    }
-    grades.subtractAll(removes)
-    var sum: Double = 0
-    for (g <- grades) {
-      if (g.score.nonEmpty) {
-        sum += g.score.get
+      var passed = true
+      val sb = new StringBuilder
+      for (course <- courses) {
+        gradeMap.get(course) match {
+          case None =>
+            sb.append(course.name + "的成绩缺失")
+            passed = false
+          case Some(g) =>
+            if (g.score.get < minScore) {
+              sb.append(course.name + "的成绩是" + g.score.get + " 低于" + minScore + ";")
+              passed = false
+            }
+            else sb.append(course.name + "的成绩是" + g.scoreText + ";")
+
+        }
+
       }
+      (passed, sb.toString)
     }
-    var ga: Double = 0
-    if (grades.nonEmpty) {
-      ga = (sum / grades.size).round
-    }
-    val passed = java.lang.Double.compare(minScore.doubleValue, ga) < 1.0
-    (passed, s"最低${minScore},平均分${ga}")
   }
 }
