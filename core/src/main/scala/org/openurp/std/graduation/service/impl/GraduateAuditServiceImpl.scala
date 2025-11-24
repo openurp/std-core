@@ -21,7 +21,6 @@ import org.beangle.commons.cdi.{Container, ContainerAware}
 import org.beangle.commons.collection.Collections
 import org.beangle.data.dao.{EntityDao, OqlBuilder}
 import org.beangle.ems.app.rule.RuleEngine
-import org.checkerframework.checker.units.qual.g
 import org.openurp.base.std.model.{Graduate, Student}
 import org.openurp.std.graduation.config.AuditSetting
 import org.openurp.std.graduation.model.{GraduateBatch, GraduateResult}
