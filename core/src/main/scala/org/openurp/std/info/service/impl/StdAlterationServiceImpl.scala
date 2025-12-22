@@ -67,9 +67,9 @@ class StdAlterationServiceImpl extends StdAlterationService {
 
             std.endOn = endOn
             t.endOn = endOn
-            generateState(t, endOn, endOn, alterConfig, alteration)
+            generateState(t, alteration.alterOn, alterConfig, alteration)
           } else {
-            generateState(t, alteration.alterOn, alteration.alterOn, alterConfig, alteration)
+            generateState(t, alteration.alterOn, alterConfig, alteration)
           }
 
         alteration.items foreach { item =>
@@ -127,13 +127,13 @@ class StdAlterationServiceImpl extends StdAlterationService {
     this.apply(alt, std)
   }
 
-  private def generateState(state: StudentState, beginOn: LocalDate, endOn: LocalDate, alterConfig: AlterConfig, alteration: StdAlteration): StudentState = { // 向后切
-    if (beginOn == state.beginOn) {
+  private def generateState(state: StudentState, newBeginOn: LocalDate, alterConfig: AlterConfig, alteration: StdAlteration): StudentState = { // 向后切
+    if (newBeginOn == state.beginOn) {
       state
     } else {
       val newState = new StudentState
       newState.std = state.std
-      newState.beginOn = beginOn
+      newState.beginOn = newBeginOn
       newState.endOn = state.endOn //保留被截断状态的结束时间
       newState.grade = state.grade
       newState.department = state.department
@@ -144,11 +144,7 @@ class StdAlterationServiceImpl extends StdAlterationService {
       newState.campus = state.campus
       newState.inschool = state.inschool
       newState.remark = Some(alteration.reason.map(_.name).getOrElse(alteration.alterType.name))
-      if (beginOn == state.beginOn) {
-        state.beginOn = endOn.plusDays(1)
-      } else {
-        state.endOn = beginOn.minusDays(1)
-      }
+      state.endOn = newBeginOn.minusDays(1)
       state.std.states += newState
       newState
     }

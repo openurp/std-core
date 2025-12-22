@@ -133,9 +133,9 @@ class GraduateAuditServiceImpl extends GraduateAuditService, ContainerAware {
     val graduateOn = batch.graduateOn
     stdQuery.where("std.project = :project", batch.project)
       // 学籍需要在正常毕业和学籍有效期内
-      .where(":now between std.graduateOn and std.endOn", graduateOn)
+      .where(":now between std.graduateOn and std.maxEndOn", graduateOn)
       // 当期在校的
-      .where("exists(from std.states as ss where :date between ss.beginOn and ss.endOn and ss.inschool=true)", graduateOn)
+      .where("std.state.inschool=true")
       // 本毕业季没有数据
       .where(s"not exists(from  ${classOf[GraduateResult].getName} gr where gr.std=std and gr.batch = :batch)", batch)
       // 也没有其他的已毕业数据
