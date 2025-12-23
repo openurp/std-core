@@ -29,6 +29,8 @@ import java.time.LocalDate
  */
 class StudentStateFixer extends AbstractDaoTask, Logging {
 
+  var idledays = 90
+
   override def execute(): Unit = {
     //1. 根据时间修正学生的学籍状态
     fixState()
@@ -84,7 +86,7 @@ class StudentStateFixer extends AbstractDaoTask, Logging {
   /** 同步学生的endOn到用户表
    */
   private def syncUserEndOn(): Unit = {
-    val updateQl = s"update ${classOf[User].getName} u set u.endOn=(select max(std.endOn) from ${classOf[Student].getName} std where " +
+    val updateQl = s"update ${classOf[User].getName} u set u.endOn=(select max(std.endOn) + ${idledays} from ${classOf[Student].getName} std where " +
       s"std.user=u) where exists(from ${classOf[Student].getName} std where std.user=u and u.endOn < std.endOn)"
     val updated = entityDao.executeUpdate(updateQl)
     if updated > 0 then logger.info(s"Auto sync  ${updated} students user endOn.")
