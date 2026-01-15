@@ -53,7 +53,7 @@ class DegreeAuditScoreChecker extends DegreeAuditChecker {
     }
     var ga: Double = 0
     if (grades.nonEmpty) {
-      ga = (sum / grades.size).round
+      ga = (sum / grades.size).round.toDouble
     }
     val passed = java.lang.Double.compare(minScore.doubleValue, ga) < 1.0
     (passed, s"最低${minScore},平均分${ga}")

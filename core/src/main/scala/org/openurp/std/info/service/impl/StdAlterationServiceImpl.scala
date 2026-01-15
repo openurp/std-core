@@ -92,7 +92,6 @@ class StdAlterationServiceImpl extends StdAlterationService {
             case AlterMeta.Tutor => std.updateTutors(List(entityDao.get(classOf[Teacher], item.newvalue.get.toLong)), Tutorship.Major)
             case AlterMeta.Advisor => std.updateTutors(List(entityDao.get(classOf[Teacher], item.newvalue.get.toLong)), Tutorship.Thesis)
             case AlterMeta.GraduateOn => std.graduateOn = LocalDate.parse(item.newvalue.get)
-            case _ => throw new RuntimeException(s"cannot support ${item.meta}")
           }
         }
         //如果异动信息中没有涉及是否在校和学籍状态，则按照异动配置来设置。
