@@ -17,7 +17,7 @@
 
 package org.openurp.std.graduation.service.impl
 
-import org.beangle.commons.cdi.{Container, ContainerAware}
+import org.beangle.commons.cdi.Container
 import org.beangle.commons.collection.Collections
 import org.beangle.data.dao.{EntityDao, OqlBuilder}
 import org.beangle.ems.app.rule.RuleEngine
@@ -29,7 +29,7 @@ import org.openurp.std.graduation.service.DegreeAuditService
 
 import java.time.Instant
 
-class DegreeAuditServiceImpl extends DegreeAuditService, ContainerAware {
+class DegreeAuditServiceImpl extends DegreeAuditService {
 
   var entityDao: EntityDao = _
   var checkNames: String = "plan,gpa,certificate"

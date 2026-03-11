@@ -17,7 +17,7 @@
 
 package org.openurp.std.graduation.service.impl
 
-import org.beangle.commons.cdi.{Container, ContainerAware}
+import org.beangle.commons.cdi.Container
 import org.beangle.commons.collection.Collections
 import org.beangle.data.dao.{EntityDao, OqlBuilder}
 import org.beangle.ems.app.rule.RuleEngine
@@ -28,7 +28,7 @@ import org.openurp.std.graduation.service.GraduateAuditService
 
 import java.time.Instant
 
-class GraduateAuditServiceImpl extends GraduateAuditService, ContainerAware {
+class GraduateAuditServiceImpl extends GraduateAuditService {
 
   var entityDao: EntityDao = _
   var checkNames: String = "plan"
@@ -134,16 +134,27 @@ class GraduateAuditServiceImpl extends GraduateAuditService, ContainerAware {
     stdQuery.where("std.project = :project", batch.project)
       // 学籍需要在正常毕业和学籍有效期内
       .where(":now between std.graduateOn and std.maxEndOn", graduateOn)
+      .where("std.registed=true")
       // 当期在校的
-      .where("std.state.inschool=true")
+      .where("exists(from std.states as state where state.inschool=true and :graduateOn22 between state.beginOn and state.endOn)", graduateOn.minusDays(10))
       // 本毕业季没有数据
       .where(s"not exists(from  ${classOf[GraduateResult].getName} gr where gr.std=std and gr.batch = :batch)", batch)
-      // 也没有其他的已毕业数据
-      .where(s"not exists(from  ${classOf[Graduate].getName} ga where ga.std=std and ga.graduateOn <> :dateOn)", graduateOn)
+      // 也没有其他的已毕业数据(可能毕业日期和批次日期有误差）
+      .where(s"not exists(from  ${classOf[Graduate].getName} ga where ga.std=std and ga.graduateOn <= :dateOn)", graduateOn.minusDays(60))
       // 其他毕业批次也没有通过的记录
       .where(s"not exists(from  ${classOf[GraduateResult].getName} ar where ar.std=std and ar.passed=true and ar.batch<>:batch)", batch)
     val results = entityDao.search(stdQuery).map(new GraduateResult(_, batch))
     entityDao.saveOrUpdate(results)
+    results.size
+  }
+
+  override def removeErrorResults(batch: GraduateBatch): Int = {
+    val query = OqlBuilder.from(classOf[GraduateResult], "result")
+    query.where("result.batch=:batch", batch)
+    query.where("result.published = false")
+    query.where("result.std.registed != true or not(:now between result.std.graduateOn and result.std.maxEndOn)", batch.graduateOn)
+    val results = entityDao.search(query)
+    entityDao.remove(results)
     results.size
   }
 }

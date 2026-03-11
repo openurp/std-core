@@ -32,5 +32,7 @@ trait GraduateAuditService {
 
   def initResults(batch: GraduateBatch): Int
 
+  def removeErrorResults(batch: GraduateBatch): Int
+
   def publish(results: Iterable[GraduateResult], published: Boolean): Unit
 }
