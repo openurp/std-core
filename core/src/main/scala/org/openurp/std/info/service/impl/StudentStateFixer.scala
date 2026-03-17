@@ -18,6 +18,7 @@
 package org.openurp.std.info.service.impl
 
 import org.beangle.commons.logging.Logging
+import org.beangle.cron.Scheduled
 import org.beangle.data.dao.OqlBuilder
 import org.beangle.data.orm.AbstractDaoTask
 import org.openurp.base.model.User
@@ -27,28 +28,41 @@ import java.time.LocalDate
 
 /** 自动修正学生的学籍状态
  */
-class StudentStateFixer extends AbstractDaoTask, Logging {
+class StudentStateFixer extends AbstractDaoTask, Logging, Scheduled {
 
+  var expression: String = _
   var idledays = 90
 
   override def execute(): Unit = {
     //1. 根据时间修正学生的学籍状态
-    fixState()
+    fixActiveState()
+    fixExpiredState()
     // 2. 对未毕业已经过期的同学进行自动延长
     autoProlong()
     //3.同步学生用户结束日期
     syncUserEndOn()
   }
 
-  /** 根据时间修正学生的学籍状态
+  /** 修正学生的活跃学生的学籍状态
    */
-  private def fixState(): Unit = {
+  private def fixActiveState(): Unit = {
     val updateQl = s"update ${classOf[Student].getName} s set state=(select min(ss.id) from s.states ss where " +
       s"?1 between ss.beginOn and ss.endOn) where exists(from s.states ss where " +
       s"?1 between ss.beginOn and ss.endOn and ss!=s.state)"
 
     val updated = entityDao.executeUpdate(updateQl, LocalDate.now())
-    if updated > 0 then logger.info(s"auto update ${updated} student state.")
+    if updated > 0 then logger.info(s"auto update ${updated} active student state.")
+  }
+
+  /** 修正过期学生的学籍状态
+   */
+  private def fixExpiredState(): Unit = {
+    //所有状态都过期了，但是离校时间不等于当前状态的离校时间
+    val updateQl = s"update ${classOf[Student].getName} s set state=(select max(ss.id) from s.states ss where " +
+      s" s.endOn = ss.endOn) where not exists(from s.states ss where ss.endOn > ?1) and s.endOn != s.state.endOn" +
+      s" and exists(from s.states ss where ss.endOn = s.endOn)"
+    val updated = entityDao.executeUpdate(updateQl, LocalDate.now())
+    if updated > 0 then logger.info(s"auto update ${updated} inactive student state.")
   }
 
   /**
