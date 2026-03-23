@@ -17,8 +17,8 @@
 
 package org.openurp.std.info.service.impl
 
+import org.beangle.commons.bean.Scheduled
 import org.beangle.commons.logging.Logging
-import org.beangle.cron.Scheduled
 import org.beangle.data.dao.OqlBuilder
 import org.beangle.data.orm.AbstractDaoTask
 import org.openurp.base.model.User
